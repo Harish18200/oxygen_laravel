@@ -29,6 +29,7 @@ use App\Models\vendor\Category\CategorySub as vendorcategorysub;
 use App\Models\vendor\vendorcreate;
 
 use App\Models\CMSPage;
+use App\Models\vendor\Products\ProductsDetails as ProductsProductsDetails;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
@@ -1250,10 +1251,34 @@ class HomeController extends Controller
 
     public function ajaxSearch(Request $request)
     {
-        
-        $search = $request->input('search');
-        $categoryId = $request->input('category');
 
+
+        $mainCategory = CategoryMain::where('status', 1)->get();
+
+        // $search = $request->input('search');
+        // $categoryId = $request->input('category');
+
+        // $query = Products::with(['productdetails', 'vendor_details'])
+        //     ->where('flag', 1)
+        //     ->where('status', 1);
+
+        // if (!empty($search)) {
+        //     $query->where('product_name', 'like', '%' . $search . '%');
+        // }
+
+        // if (!empty($categoryId)) {
+        //     $query->where('category_main_id', $categoryId); // Adjust if needed
+        // }
+
+        // $results = $query->take(5)->get();
+        // print_r( $results);exit;
+
+        return response()->json($mainCategory);
+    }
+    public function getCategoryByMainId(Request $request)
+    {
+        $search = $request->input('searchKey');
+        $categoryId = $request->input('categoryId');
         $query = Products::with(['productdetails', 'vendor_details'])
             ->where('flag', 1)
             ->where('status', 1);
@@ -1263,12 +1288,17 @@ class HomeController extends Controller
         }
 
         if (!empty($categoryId)) {
-            $query->where('category_main_id', $categoryId); // Adjust if needed
+            $query->where('category_main', $categoryId);
         }
 
         $results = $query->take(5)->get();
-        // print_r( $results);exit;
-
         return response()->json($results);
     }
+   public function categoryWiseListProduct($id)
+{
+    $productDetails = ProductsDetails::where('products_id', $id)->get();
+
+    return view('front_end.site.categoryLists', compact('productDetails'));
+ 
+}
 }
