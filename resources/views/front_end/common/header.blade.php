@@ -13,6 +13,16 @@ $categorysub = CategorySub::get();
 ?>
 
 <style>
+    #search-results-container {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background-color: #fff;
+        z-index: 1050;
+        border-radius: 0.25rem;
+    }
+
     #search-results {
         padding: 0;
         list-style: none;
@@ -53,13 +63,16 @@ $categorysub = CategorySub::get();
                         </select>
                     </div> -->
                     <!-- <button class="btn btn-search" type="submit"><i class="w-icon-search"></i></button> -->
-                    <div class="position-relative w-100" style="max-width: 700px;"> <!-- Or use col classes -->
+                    <div class="position-relative w-100" style="max-width: 700px;">
                         <input type="text" class="form-control bg-white w-100" name="search" id="search"
                             value="{{ request('search') }}" placeholder="Search in..." required />
-                        <ul id="search-results"
-                            class="list-group shadow-sm position-absolute bg-white border rounded mt-1"
-                            style="top: 100%; left: 0; right: 0; z-index: 999; display: none; max-height: 250px; overflow-y: auto;">
-                        </ul>
+
+                        <!-- Dropdown Search Results -->
+                        <div id="search-results-container"
+                            class="dropdown-menu show w-100 p-0 mt-1"
+                            style="display: none; max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+                            <ul id="search-results" class="list-group list-group-flush"></ul>
+                        </div>
                     </div>
 
                 </form>
@@ -296,58 +309,58 @@ $categorysub = CategorySub::get();
 
     <script>
         $(document).ready(function() {
-            $(document).on('click', '.product-click', function() {
-                let productId = $(this).data('name');
-                handleProductClick(productId);
-            });
+            // $(document).on('click', '.product-click', function() {
+            //     let productId = $(this).data('name');
+            //     handleProductClick(productId);
+            // });
 
-            function handleProductClick(productId) {
-                let query = $('#search').val();
+//             function handleProductClick(productId) {
+//                 let query = $('#search').val();
 
-                if (productId) {
-                    $.ajax({
-                        url: "{{ route('getCategoryByMainId') }}",
-                        type: "GET",
-                        data: {
-                            categoryId: productId,
-                            searchKey: query
+//                 if (productId) {
+//                     $.ajax({
+//                         url: "{{ route('getCategoryByMainId') }}",
+//                         type: "GET",
+//                         data: {
+//                             categoryId: productId,
+//                             searchKey: query
 
-                        },
-                        success: function(data) {
-                            let results = $('#search-results');
-                            results.empty().show();
+//                         },
+//                         success: function(data) {
+//                             let results = $('#search-results');
+//                             results.empty().show();
 
-                            if (data.length === 0) {
-                                results.append('<li class="list-group-item" style="background-color: white; padding: 6px 10px; color: black;">No products found</li>');
-                            } else {
-                                data.forEach(function(item) {
-                                    results.append(`
-                                <li class="list-group-item" style="padding: 6px 10px; background-color: white;">
-    <a href="/categoryWiseListProduct/${item.id}" 
-   class=" d-flex gap-2 align-items-center text-decoration-none"
-   data-name="${item.id}"
-   style="background-color: white;">
-    <img src="/assets/images/products/${item.product_image}" 
-         style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.1);">
-    <div style="font-size: 14px;">
-        <strong style="color: black;">${item.product_name}</strong><br>
-        <small class="text-muted"></small>
-    </div>
-</a>
+//                             if (data.length === 0) {
+//                                 results.append('<li class="list-group-item" style="background-color: white; padding: 6px 10px; color: black;">No products found</li>');
+//                             } else {
+//                                 data.forEach(function(item) {
+//                                     results.append(`
+//                                 <li class="list-group-item" style="padding: 6px 10px; background-color: white;">
+//     <a href="/categoryWiseListProduct/${item.id}" 
+//    class=" d-flex gap-2 align-items-center text-decoration-none"
+//    data-name="${item.id}"
+//    style="background-color: white;">
+//     <img src="/assets/images/products/${item.product_image}" 
+//          style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.1);">
+//     <div style="font-size: 14px;">
+//         <strong style="color: black;">${item.product_name}</strong><br>
+//         <small class="text-muted"></small>
+//     </div>
+// </a>
 
-</li>
+// </li>
 
 
-                            `);
-                                });
-                            }
-                        }
-                    });
-                } else {
-                    $('#search-results').empty().hide();
-                }
+//                             `);
+//                                 });
+//                             }
+//                         }
+//                     });
+//                 } else {
+//                     $('#search-results').empty().hide();
+//                 }
 
-            }
+//             }
 
             function performSearch() {
                 let query = $('#search').val();
@@ -363,37 +376,39 @@ $categorysub = CategorySub::get();
                         },
                         success: function(data) {
                             let results = $('#search-results');
-                            results.empty().show();
+                            let container = $('#search-results-container');
+                            results.empty();
 
                             if (data.length === 0) {
-                                results.append('<li class="list-group-item" style="background-color: white; padding: 6px 10px; color: black;">No products found</li>');
+                                results.append('<li class="list-group-item">No products found</li>');
                             } else {
                                 data.forEach(function(item) {
                                     results.append(`
-                                <li class="list-group-item" style="padding: 6px 10px; background-color: white;">
-    <a href="javascript:void(0);" 
-       class="product-click d-flex gap-2 align-items-center text-decoration-none"
-       data-name="${item.id}"
-       style="background-color: white;">
-        <img src="/assets/images/products/${item.category_main_image}" 
-             style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.1);">
-        <div style="font-size: 14px;">
-            <strong style="color: black;">${item.category_main_name}</strong><br>
-            <small class="text-muted"></small>
-        </div>
-    </a>
-</li>
-
-
-                            `);
+                            <li class="list-group-item">
+                                <a href="/categoryWiseListProduct/${item.product_id}" 
+                                   class=" d-flex gap-2 align-items-center text-decoration-none"
+                                   data-name="${item.product_id}">
+                                    <img src="/assets/images/products/${item.product_image}" 
+                                         style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px;">
+                                    <div>
+                                        <strong>${item.category_main_name}</strong><br>
+                                    </div>
+                                </a>
+                            </li>
+                        `);
                                 });
                             }
+
+                            // Show the dropdown container
+                            container.show();
                         }
                     });
                 } else {
-                    $('#search-results').empty().hide();
+                    $('#search-results').empty();
+                    $('#search-results-container').hide();
                 }
             }
+
 
             // Trigger AJAX on typing
             $('#search').on('keyup', performSearch);
@@ -404,10 +419,9 @@ $categorysub = CategorySub::get();
                 performSearch();
             });
 
-            // Hide search results when clicking outside
             $(document).click(function(e) {
-                if (!$(e.target).closest('.header-search').length) {
-                    $('#search-results').hide();
+                if (!$(e.target).closest('#search-results-container, #search').length) {
+                    $('#search-results-container').hide();
                 }
             });
         });

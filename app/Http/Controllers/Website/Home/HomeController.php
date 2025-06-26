@@ -47,17 +47,17 @@ class HomeController extends Controller
     public function index()
     {
 
+
         /*if(@Session::get('pincode'))
         {
 */
         $mainslider = mainslider::where('status', 1)->get();
 
-        $newArrivals = Products::with(['vendor', 'productdetails', 'offer', 'vendor_details'])
+        $newArrivals = Products::with(['vendor', 'CategoryMain', 'productdetails', 'offer', 'vendor_details'])
             ->where('flag', 1)->where('status', 1)
             ->latest('created_at')->take(10)->get();
 
         // dd( $newArrivals);
-
 
 
         $topCategories = CategoryMain::select('category_main.id', 'category_main.category_main_name', 'category_main.category_main_image', DB::raw('COUNT(products.id) as product_count'))
@@ -290,15 +290,36 @@ class HomeController extends Controller
         $products = Products::where('category', $category_id)->where('status', 1)->select('id', 'category', 'product_name', 'product_image', 'offers', 'collection')->take(20)->get();
         $category = Category::where('id', $category_id)->where('status', 1)->select('id', 'main_category_id', 'category_name', 'category_image', 'category_keywords')->first();
         $subcategory = CategorySub::where('category_id', $category_id)->where('status', 1)->select('id', 'category_sub_name', 'category_sub_image', 'category_sub_keywords')->orderBy('category_sub_sortorder', 'ASC')->get();
-        //dd($category);
+        $productbrand = ProductSpecs::where('category_sub_id', $category_id)->where('specify_attribute', 'Brand')->select('specify_value')->groupby('specify_value')->get();
+        $categorySubValue = CategorySub::where('category_id', $category_id)->where('status', 1)->select('id', 'category_sub_attributes', 'category_sub_name', 'category_sub_image', 'category_sub_keywords')->orderBy('category_sub_sortorder', 'ASC')->first();
+
         $mainid = $category->main_category_id;
         $maincategory = CategoryMain::where('id', $mainid)->where('status', 1)->select('id', 'category_main_name', 'category_main_image', 'category_main_keywords')->first();
+        $productcolors = DB::table('products_details')
+            ->leftJoin('products', 'products.id', '=', 'products_details.products_id')
+            ->select(DB::raw('DISTINCT(products_details.attributevalue1) as color'))
+            ->where('products.category_sub', $category_id)
+            ->pluck('color');
+
+        $colors = $productcolors->toArray();
+        $maincolors = array("Black", "White", "Gray", "Silver", "Maroon", "Red", "Purple", "Fuchsia", "Green", "Lime", "Olive", "Yellow", "Navy", "Blue", "Teal");
+
+        $mergedColors = array_unique(array_merge($maincolors, $colors));
+
+        $mergedColors = array_values($mergedColors);
+        $attributearray = explode(',', $categorySubValue->category_sub_attributes);
+
+        $attributes = AttributeGroup::wherein('id', $attributearray)->get();
+
 
         return view('front_end.site.categoryshopPage')->with([
             "product" => $products,
             "categories" => $subcategory,
             "category" => $category,
-            "maincategory" => $maincategory
+            "maincategory" => $maincategory,
+            "colours" => $mergedColors,
+            "productbrand" => $productbrand,
+            "attributes" => $attributes,
         ]);
     }
     public function subcategoryshow($category_id)
@@ -312,7 +333,7 @@ class HomeController extends Controller
         $categoryid = $subcategory->category_id;
         $attributearray = explode(',', $subcategory->category_sub_attributes);
 
-        $attributes = AttributeGroup::wherein('id', $attributearray)->get();
+        $attributes = AttributeGroup::wherein('id', $attributearray)->get();  //sizes
         $category = Category::where('id', $categoryid)->where('status', 1)->select('id', 'category_name', 'category_image', 'category_keywords')->first();
         $maincategory = CategoryMain::where('id', $mainid)->where('status', 1)->select('id', 'category_main_name', 'category_main_image', 'category_main_keywords')->first();
         $productbrand = ProductSpecs::where('category_sub_id', $category_id)->where('specify_attribute', 'Brand')->select('specify_value')->groupby('specify_value')->get();
@@ -1033,6 +1054,8 @@ class HomeController extends Controller
     }
     public function getcatefilterproduct(Request $request)
     {
+
+
         $category_id = $request->id;
         $minprice = $request->minprice;
         $maxprice = $request->maxprice;
@@ -1058,6 +1081,22 @@ class HomeController extends Controller
         if (!is_null($maxprice)) {
             $products->where('products_details.selling_price', '<=', $maxprice);
         }
+        if (!empty($request->color)) {
+            $products->whereIn('products_details.attributevalue1', $request->color);
+        }
+        if (!empty($request->size1)) {
+            $products->whereIn('products_details.attributevalue2', $request->size1);
+        }
+        if (!empty($request->size2)) {
+            $products->orWhereIn('products_details.attributevalue3', $request->size2);
+        }
+
+        // Brand filtering
+        if (!empty($request->brand)) {
+            $products->whereIn('products_specs.specify_value', $request->brand);
+        }
+
+
 
         $products->where('products.status', 1)
             ->groupBy(
@@ -1101,6 +1140,7 @@ class HomeController extends Controller
         $minprice = $request->minprice;
         $maxprice = $request->maxprice;
         $orderby = $request->orderby;
+
 
         // Start building the query
         $products = DB::table('products_details')
@@ -1251,30 +1291,36 @@ class HomeController extends Controller
 
     public function ajaxSearch(Request $request)
     {
+        $search = $request->input('search');
+        $categoryId = $request->input('category');
 
+        $query = Products::with('CategoryMain')
+            ->where('flag', 1)
+            ->where('status', 1);
 
-        $mainCategory = CategoryMain::where('status', 1)->get();
+        if (!empty($search)) {
+            $query->where('product_name', 'like', '%' . $search . '%');
+        }
 
-        // $search = $request->input('search');
-        // $categoryId = $request->input('category');
+        if (!empty($categoryId)) {
+            $query->where('category', $categoryId);
+        }
 
-        // $query = Products::with(['productdetails', 'vendor_details'])
-        //     ->where('flag', 1)
-        //     ->where('status', 1);
+        $products = $query->get();
 
-        // if (!empty($search)) {
-        //     $query->where('product_name', 'like', '%' . $search . '%');
-        // }
+        // Map to required fields and remove duplicate category_main_name
+        $results = $products->map(function ($product) {
+            return [
+                'product_id' => $product->product_id,
+                'category_main_name' => optional($product->CategoryMain)->category_main_name,
+                'product_image' => $product->product_image
+            ];
+        })->unique('category_main_name')->values();
 
-        // if (!empty($categoryId)) {
-        //     $query->where('category_main_id', $categoryId); // Adjust if needed
-        // }
-
-        // $results = $query->take(5)->get();
-        // print_r( $results);exit;
-
-        return response()->json($mainCategory);
+        return response()->json($results);
     }
+
+
     public function getCategoryByMainId(Request $request)
     {
         $search = $request->input('searchKey');
@@ -1294,11 +1340,10 @@ class HomeController extends Controller
         $results = $query->take(5)->get();
         return response()->json($results);
     }
-   public function categoryWiseListProduct($id)
-{
-    $productDetails = ProductsDetails::where('products_id', $id)->get();
+    public function categoryWiseListProduct($id)
+    {
+        $productDetails = ProductsDetails::where('products_id', $id)->get();
 
-    return view('front_end.site.categoryLists', compact('productDetails'));
- 
-}
+        return view('front_end.site.categoryLists', compact('productDetails'));
+    }
 }

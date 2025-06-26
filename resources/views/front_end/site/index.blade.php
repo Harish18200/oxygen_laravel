@@ -184,7 +184,7 @@
             </div>
             <!-- End of Swiper Container -->
 
-            <h2 class="title title-center mb-3">Top Categories Of The Month</h2>
+            <h2 class="title title-center mb-3">TOP DEALS OF THE MONTH</h2>
             <div class="swiper-container container  swiper-theme shadow-swiper pb-10"
                 data-swiper-options="{
                 'spaceBetween': 20,
@@ -265,7 +265,7 @@
     <section class=" appear-animate">
         <div class="container mb-2">
 
-            <h2 class="title justify-content-center ls-normal mb-4 mt-10 pt-1 appear-animate">Best Offer Products
+            <h2 class="title justify-content-center ls-normal mb-4 mt-10 pt-1 appear-animate">Feature Products
             </h2>
             <div class="tab tab-nav-boxed tab-nav-outline appear-animate">
                 <ul class="nav nav-tabs justify-content-center" role="tablist">
@@ -329,10 +329,15 @@
                                         
                                     </figure>
                                     <div class="product-details">
-                                        <h4 class="product-name"><a
+                                        <span class="text-muted">
+    <a href="{{ route('getProduct', $newArrivals->productdetails->id) }}" class="text-muted ">
+        {{ $newArrivals->CategoryMain->category_main_name }}
+    </a>
+</span>
+
+                                         <h4 class="product-name"><a
                                                 href="{{ route('getProduct', $newArrivals->productdetails->id) }}">{{ $newArrivals->product_name }}</a>
                                         </h4>
-                                        
                                       
 
                                         <div class="ratings-container">
@@ -385,30 +390,7 @@
             </div>
             <!-- End of Tab Content -->
 
-            <div class="row category-cosmetic-lifestyle appear-animate mb-5">
-                @foreach ($oxygenAddBanner as $oxygenAddBanner)
-                    <div class="col-md-6 mb-4">
-                        <div class="banner banner-fixed category-banner-1 br-xs">
-                            <figure>
-                                <img src="{{ asset('assets/images/banners/advoxygen') . '/' . $oxygenAddBanner->image }}"
-                                    alt="Category Banner" width="610" height="200"
-                                    style="background-color: #3B4B48;" />
-                            </figure>
-                            <div class="banner-content y-50 pt-1">
-                                <h5 class="banner-subtitle font-weight-bold text-uppercase">
-                                    {{ $oxygenAddBanner->sub_title }}</h5>
-                                <h3 class="banner-title font-weight-bolder text-capitalize text-white">
-                                    {{ $oxygenAddBanner->title }}</h3>
-                                <a href="{{ $oxygenAddBanner->link }}"
-                                    class="btn btn-white btn-link btn-underline btn-icon-right">Shop Now<i
-                                        class="w-icon-long-arrow-right"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
-
-
-            </div>
+         
             <!-- End of Category Cosmetic Lifestyle -->
 
             <div class="product-wrapper-1 appear-animate mb-5">

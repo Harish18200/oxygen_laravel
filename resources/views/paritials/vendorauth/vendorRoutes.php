@@ -29,7 +29,7 @@ use App\Http\Controllers\vendor\VendorcreateController;
 use App\Http\Controllers\vendor\ProductsController\SpecificationController;
 use App\Http\Controllers\vendor\coupon\CouponController;
 use App\Http\Controllers\vendor\PinCodeController\PinCodeController;
-use App\Http\Controllers\vendor\PinCodeController1\PinCodeController1;
+// use App\Http\Controllers\vendor\PinCodeController1\PinCodeController1;
 // use App\Http\Controllers\StaffController\StaffController;
 /*
 |--------------------------------------------------------------------------
@@ -74,7 +74,7 @@ Route::get('dashboard/{id}',
 //Pincode
 //Route::resource('pincode', PinCodeController::class, ['names' => 'pincode']);
 // Route::resource('pincode', PinCodeController::class, ['names' => 'pincode']);
-                              Route::resource('pincode1', PinCodeController1::class, ['names' => 'vendorpincode1']);
+                              // Route::resource('pincode1', PinCodeController1::class, ['names' => 'vendorpincode1']);
 
 // Route::match(['put', 'patch'], '/pincode1/update/{id}','PinCodeController1@update');
 //  Route::post('pincode1/update/{id}', 'PinCodeController1@update');
